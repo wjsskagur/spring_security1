@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import security1.security.auth.MemberPrincipalDetailService;
 import security1.security.provider.MemberAuthenticatorProvider;
 
 @Configuration
@@ -27,6 +28,12 @@ public class MemberSecurityConfig {
     // 인증 처리도 같이 진행된다
     @Autowired
     MemberAuthenticatorProvider memberAuthenticatorProvider;
+
+    // 로그인 기억하기 사용을 위해 MemberAuthenticatorProvider 내부
+    // MemberPrincipalDetailsService 선언
+    @Autowired
+    MemberPrincipalDetailService memberPrincipalDetailService;
+
 
     // in memory 방식으로 인증 처리를 진행 하기 위해 기존엔 Override 하여 구현했지만
     // Spring Security 5.7.0 버전부터는 AuthenticationManagerBuilder를 직접 생성하여
@@ -68,6 +75,12 @@ public class MemberSecurityConfig {
                 throw new RuntimeException(e);
             }
         });
+
+        http.rememberMe()
+                .key("namhyeok") // 인증 토큰 생성시 사용할 키
+                .tokenValiditySeconds(60 * 60 * 24 * 7) // 인증 토큰 유효 시간 (초)
+                .userDetailsService(memberPrincipalDetailService) // 인증 토큰 생성시 사용할 UserDetailsService
+                .rememberMeParameter("remember-me"); // 로그인 페이지에서 사용할 파라미터 이름
 
         return http.build();
     }
